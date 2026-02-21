@@ -1,0 +1,51 @@
+# Environment variables (contains API keys - NEVER commit this!)
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+.conda/
+*.conda
+
+# Local database (Qdrant vector DB data)
+qdrant_db/
+
+# Data directory (potentially large local files)
+data/
+
+# Results / outputs
+results/
+
+# Error log files
+last_error.txt
+last_invocation_error.txt
+last_simple_run_error.txt
+
+# Jupyter Notebooks checkpoints
+.ipynb_checkpoints/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log

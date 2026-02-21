@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentinel Research | Multi-Model AI Agent</title>
+    <meta name="description"
+        content="Sentinel Research - A multi-model AI agent with Fast (Llama 3.2), Deep (Gemma 3), RAG (Phi 3.5), and Coding (Qwen 2.5) modes.">
+    <link rel="stylesheet" href="/static/style.css?v=4">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+
+<body>
+    <!-- Animated Gradient Orb Background -->
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <ion-icon name="planet"></ion-icon>
+                    </div>
+                    <span>Sentinel</span>
+                </div>
+                <button id="new-chat-btn" class="icon-btn" title="New Chat">
+                    <ion-icon name="create-outline"></ion-icon>
+                </button>
+            </div>
+
+            <div class="history-list" id="history-list">
+                <div class="history-placeholder">
+                    <ion-icon name="chatbubbles-outline"></ion-icon>
+                    <span>No conversations yet</span>
+                </div>
+            </div>
+
+            <!-- RAG Knowledge Base Panel -->
+            <div class="rag-panel">
+                <div class="rag-header" id="rag-toggle">
+                    <div class="rag-title">
+                        <ion-icon name="library-outline"></ion-icon>
+                        <span>Knowledge Base</span>
+                    </div>
+                    <div class="rag-status-dot" id="rag-status-dot" title="KB Status"></div>
+                </div>
+                <div class="rag-body" id="rag-body">
+                    <div class="rag-stats" id="rag-stats">Loading...</div>
+                    <div class="rag-files" id="rag-files"></div>
+                    <label class="rag-upload-btn" for="rag-file-input">
+                        <ion-icon name="cloud-upload-outline"></ion-icon>
+                        <span>Upload Document</span>
+                    </label>
+                    <input type="file" id="rag-file-input" accept=".pdf,.txt,.md,.csv" hidden>
+                    <div class="rag-upload-status hidden" id="rag-upload-status"></div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <button id="theme-toggle" class="icon-btn" aria-label="Toggle Theme" title="Toggle Theme">
+                    <ion-icon name="moon" id="theme-icon"></ion-icon>
+                </button>
+                <span class="version-tag">v3.0 &middot; 4 Models</span>
+            </div>
+        </aside>
+
+        <!-- Sidebar Toggle for Mobile -->
+        <button class="sidebar-toggle" id="sidebar-toggle">
+            <ion-icon name="menu-outline"></ion-icon>
+        </button>
+
+        <!-- Main Chat Area -->
+        <main class="chat-container">
+            <div id="welcome-screen" class="welcome-screen">
+                <div class="welcome-orb-wrapper">
+                    <div class="welcome-orb"></div>
+                </div>
+                <h1 class="hero-title">Hello, I'm Sentinel</h1>
+                <p class="subtitle">Your multi-model autonomous research agent</p>
+                <div class="capabilities">
+                    <div class="capability-card">
+                        <ion-icon name="flash-outline"></ion-icon>
+                        <span>Fast &middot; Llama 3.2</span>
+                    </div>
+                    <div class="capability-card">
+                        <ion-icon name="planet-outline"></ion-icon>
+                        <span>Deep &middot; Gemma 3</span>
+                    </div>
+                    <div class="capability-card">
+                        <ion-icon name="library-outline"></ion-icon>
+                        <span>RAG &middot; Phi 3.5</span>
+                    </div>
+                    <div class="capability-card">
+                        <ion-icon name="code-slash-outline"></ion-icon>
+                        <span>Coding &middot; Qwen 2.5</span>
+                    </div>
+                </div>
+                <div class="suggestion-chips">
+                    <button class="chip">
+                        <ion-icon name="sparkles-outline"></ion-icon>
+                        <span>Latest AI breakthroughs</span>
+                    </button>
+                    <button class="chip">
+                        <ion-icon name="code-slash-outline"></ion-icon>
+                        <span>Write a Python web scraper</span>
+                    </button>
+                    <button class="chip">
+                        <ion-icon name="hardware-chip-outline"></ion-icon>
+                        <span>Quantum computing progress</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="chat-stream" class="chat-stream hidden">
+                <!-- Chat messages injected here -->
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <!-- File Attachment Preview -->
+                <div class="attachment-preview hidden" id="attachment-preview">
+                    <div class="attachment-chip">
+                        <ion-icon name="document-text-outline"></ion-icon>
+                        <span id="attachment-name">file.txt</span>
+                        <button class="remove-attachment" id="remove-attachment" title="Remove">
+                            <ion-icon name="close-circle"></ion-icon>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="input-container">
+                    <div class="input-actions-left">
+                        <button class="icon-btn-sm" id="upload-btn" title="Upload File (.txt, .md, .csv, .json)">
+                            <ion-icon name="add-circle-outline"></ion-icon>
+                        </button>
+                        <input type="file" id="file-input" hidden>
+
+                        <div class="mode-cycle-pill" id="mode-toggle-btn" title="Click to cycle modes">
+                            <ion-icon name="flash" id="mode-icon"></ion-icon>
+                            <span id="mode-text">Fast</span>
+                        </div>
+                    </div>
+
+                    <textarea id="query-input" placeholder="Ask anything..." rows="1" autocomplete="off"></textarea>
+
+                    <button id="search-btn" class="send-btn" title="Send">
+                        <ion-icon name="arrow-up"></ion-icon>
+                    </button>
+                </div>
+
+                <div class="status-indicator hidden">
+                    <div class="typing-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <span id="status-text">Thinking...</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/script.js?v=4"></script>
+</body>
+
+</html>
