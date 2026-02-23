@@ -12,7 +12,8 @@ load_dotenv()
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 COLLECTION_NAME  = "sentinel_research"
-QDRANT_PATH      = "./qdrant_db"
+QDRANT_PATH      = "./qdrant_db"                          # used only in local-file fallback
+QDRANT_URL       = os.getenv("QDRANT_URL", "")            # set this in .env for server mode
 EMBEDDING_MODEL  = "sentence-transformers/all-MiniLM-L6-v2"
 BRAVE_API_KEY    = os.getenv("BRAVE_SEARCH_API_KEY", "")
 
@@ -21,9 +22,14 @@ _qdrant_client = None
 _embeddings    = None
 
 def get_qdrant_client():
+    """Returns a QdrantClient — HTTP server mode when QDRANT_URL is set, else local file."""
     global _qdrant_client
     if _qdrant_client is None:
-        _qdrant_client = QdrantClient(path=QDRANT_PATH)
+        if QDRANT_URL:
+            _qdrant_client = QdrantClient(url=QDRANT_URL)
+        else:
+            # Local file mode — only safe when a single process accesses qdrant_db
+            _qdrant_client = QdrantClient(path=QDRANT_PATH)
     return _qdrant_client
 
 def get_embeddings():
@@ -88,7 +94,7 @@ def retrieve_documents(query: str) -> List[str]:
     Use when the user asks about uploaded/ingested documents or their knowledge base.
     """
     try:
-        if not os.path.exists(QDRANT_PATH):
+        if not os.path.exists(QDRANT_PATH) and not QDRANT_URL:
             return ["No knowledge base found. Please ingest documents first."]
         client = get_qdrant_client()
         if not client.collection_exists(COLLECTION_NAME):

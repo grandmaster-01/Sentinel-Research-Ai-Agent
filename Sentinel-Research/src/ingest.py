@@ -23,6 +23,7 @@ load_dotenv()
 DATA_DIR        = os.path.join(os.path.dirname(__file__), "../data")
 COLLECTION_NAME = "sentinel_research"   # must match agent_tools.py
 QDRANT_PATH     = os.path.join(os.path.dirname(__file__), "../qdrant_db")
+QDRANT_URL      = os.getenv("QDRANT_URL", "")   # set in .env for server mode
 EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
 SUPPORTED_EXTENSIONS = {".pdf", ".txt", ".md", ".csv"}
@@ -79,7 +80,10 @@ def process_file(file_path: str) -> dict:
 
         # Embed & upsert
         embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
-        client = QdrantClient(path=QDRANT_PATH)
+        if QDRANT_URL:
+            client = QdrantClient(url=QDRANT_URL)
+        else:
+            client = QdrantClient(path=QDRANT_PATH)
         get_or_create_collection(client)
 
         vector_store = QdrantVectorStore(
@@ -112,9 +116,12 @@ def process_existing_files():
 def get_collection_stats() -> dict:
     """Returns info about the current knowledge base."""
     try:
-        if not os.path.exists(QDRANT_PATH):
+        if QDRANT_URL:
+            client = QdrantClient(url=QDRANT_URL)
+        elif not os.path.exists(QDRANT_PATH):
             return {"status": "empty", "count": 0}
-        client = QdrantClient(path=QDRANT_PATH)
+        else:
+            client = QdrantClient(path=QDRANT_PATH)
         if not client.collection_exists(COLLECTION_NAME):
             return {"status": "empty", "count": 0}
         info = client.get_collection(COLLECTION_NAME)
