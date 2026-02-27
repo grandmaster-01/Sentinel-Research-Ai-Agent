@@ -70,32 +70,41 @@ async def get_session(session_id: str):
     for f in RESULTS_DIR.glob("*.json"):
         try:
             data = json.loads(f.read_text(encoding="utf-8"))
-            if data.get("session_id") == session_id:
+            sid = str(data.get("session_id") or data.get("task_id") or "")
+            if sid == session_id:
                 messages.append(data)
         except Exception:
             continue
-    messages.sort(key=lambda x: x.get("timestamp", 0))
+    messages.sort(key=lambda x: float(x.get("timestamp") or 0))
     return messages
 
 # ── History ───────────────────────────────────────────────────────────────────
 
 @app.get("/history")
 async def get_history():
-    """Returns one entry per conversation session (grouped by session_id)."""
-    sessions: dict = {}  # session_id → first message data
+    """Returns one entry per session (grouped by session_id, showing first message)."""
+    sessions: dict = {}  # session_id (str) → earliest message data
     for f in RESULTS_DIR.glob("*.json"):
         try:
             data = json.loads(f.read_text(encoding="utf-8"))
-            sid = data.get("session_id", data.get("task_id"))
-            if sid and (sid not in sessions or
-                        data.get("timestamp", 0) < sessions[sid].get("timestamp", 0)):
+            # Normalise: session_id must be a string; fall back to task_id
+            sid = str(data.get("session_id") or data.get("task_id") or "")
+            if not sid:
+                continue
+            ts = float(data.get("timestamp") or 0)
+            # Keep only the EARLIEST entry for each session (= the first message)
+            if sid not in sessions or ts < float(sessions[sid].get("timestamp") or 0):
                 sessions[sid] = data
         except Exception:
             continue
-    history = [
-        {"task_id": v["session_id"], "query": v["query"], "timestamp": v.get("timestamp", 0)}
-        for v in sessions.values()
-    ]
+
+    history = []
+    for sid, v in sessions.items():
+        history.append({
+            "task_id":   sid,
+            "query":     v.get("query", "(no query)"),
+            "timestamp": float(v.get("timestamp") or 0),
+        })
     history.sort(key=lambda x: x["timestamp"], reverse=True)
     return history
 
@@ -105,7 +114,8 @@ async def delete_history_item(session_id: str):
     for f in RESULTS_DIR.glob("*.json"):
         try:
             data = json.loads(f.read_text(encoding="utf-8"))
-            if data.get("session_id") == session_id:
+            sid = str(data.get("session_id") or data.get("task_id") or "")
+            if sid == session_id:
                 f.unlink()
                 deleted += 1
         except Exception:

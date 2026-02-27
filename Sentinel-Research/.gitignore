@@ -49,3 +49,7 @@ Thumbs.db
 
 # Docker
 *.log
+
+# Temp / debug scripts (auto-generated, not part of project)
+fix_results.py
+test_history.py
