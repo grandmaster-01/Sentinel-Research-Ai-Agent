@@ -5,8 +5,6 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 try:
-    # Pre-import to avoid weird loading issues
-    from langchain_community.utilities import DuckDuckGoSearchAPIWrapper
     from src.app_workflow import workflow, AgentState
     print("Graph imported successfully.")
     
