@@ -22,13 +22,26 @@ _qdrant_client = None
 _embeddings    = None
 
 def get_qdrant_client():
-    """Returns a QdrantClient — HTTP server mode when QDRANT_URL is set, else local file."""
+    """Returns a QdrantClient.
+    Uses HTTP server mode when QDRANT_URL is set AND reachable.
+    Falls back to local file mode automatically if the server is offline.
+    """
     global _qdrant_client
     if _qdrant_client is None:
         if QDRANT_URL:
-            _qdrant_client = QdrantClient(url=QDRANT_URL)
+            try:
+                client = QdrantClient(url=QDRANT_URL)
+                client.get_collections()   # quick reachability check
+                _qdrant_client = client
+            except Exception:
+                import warnings
+                warnings.warn(
+                    f"Qdrant server at {QDRANT_URL} is unreachable — "
+                    "falling back to local file mode.",
+                    stacklevel=2,
+                )
+                _qdrant_client = QdrantClient(path=QDRANT_PATH)
         else:
-            # Local file mode — only safe when a single process accesses qdrant_db
             _qdrant_client = QdrantClient(path=QDRANT_PATH)
     return _qdrant_client
 

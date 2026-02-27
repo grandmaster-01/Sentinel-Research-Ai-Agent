@@ -276,10 +276,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     isProcessing = false;
                     searchBtn.classList.remove('disabled');
                     statusIndicator.classList.add('hidden');
-                    // Only refresh history sidebar on first message of session
-                    if (data.task_id === sessionId || !data.session_id) {
-                        loadHistory();
-                    }
+                    // Always refresh history on completion — the sidebar deduplicates by session_id
+                    loadHistory();
                 } else if (data.status === 'failed') {
                     clearInterval(interval);
                     updateMessage(messageElementId, `<p style="color:#ff5546;">Failed: ${data.error || 'Unknown error'}</p>`);

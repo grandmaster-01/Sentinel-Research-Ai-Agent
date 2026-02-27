@@ -6,7 +6,9 @@ from pathlib import Path
 from celery import Celery
 from .models import get_fast_llm, get_coding_llm, MODEL_FAST, MODEL_CODING, detect_coding_query
 
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+REDIS_URL   = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+# Absolute path so results/ is always next to the project src/, regardless of cwd
+RESULTS_DIR = Path(__file__).parent.parent / "results"
 
 celery_app = Celery("sentinel_worker", broker=REDIS_URL, backend=REDIS_URL)
 celery_app.conf.update(
@@ -83,12 +85,12 @@ def run_research_task(query: str, mode: str = "deep",
         else:
             report, model = _workflow_mode(query, "deep", chat_history, file_content)
 
-        # Persist — session_id groups follow-ups with the first message
-        task_id          = run_research_task.request.id or ""
-        effective_session = session_id if session_id else task_id
+        # Persist with absolute path — session_id groups follow-ups together
+        task_id           = run_research_task.request.id or ""
+        effective_session  = session_id if session_id else task_id
         if task_id:
-            Path("results").mkdir(exist_ok=True)
-            with open(Path("results") / f"{task_id}.json", "w", encoding="utf-8") as f:
+            RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+            with open(RESULTS_DIR / f"{task_id}.json", "w", encoding="utf-8") as f:
                 json.dump({
                     "task_id":    task_id,
                     "session_id": effective_session,

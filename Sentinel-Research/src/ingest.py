@@ -117,11 +117,19 @@ def get_collection_stats() -> dict:
     """Returns info about the current knowledge base."""
     try:
         if QDRANT_URL:
-            client = QdrantClient(url=QDRANT_URL)
+            try:
+                client = QdrantClient(url=QDRANT_URL)
+                client.get_collections()  # reachability check
+            except Exception:
+                # Server not running — fall back to local file
+                if not os.path.exists(QDRANT_PATH):
+                    return {"status": "empty", "count": 0}
+                client = QdrantClient(path=QDRANT_PATH)
         elif not os.path.exists(QDRANT_PATH):
             return {"status": "empty", "count": 0}
         else:
             client = QdrantClient(path=QDRANT_PATH)
+
         if not client.collection_exists(COLLECTION_NAME):
             return {"status": "empty", "count": 0}
         info = client.get_collection(COLLECTION_NAME)
