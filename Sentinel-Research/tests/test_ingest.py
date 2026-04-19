@@ -9,7 +9,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 # Add src to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 
-from ingest import process_file, COLLECTION_NAME, QDRANT_PATH, EMBEDDING_MODEL_NAME
+from ingest import process_file, COLLECTION_NAME, QDRANT_PATH, EMBEDDING_MODEL
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
